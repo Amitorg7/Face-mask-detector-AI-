@@ -19,15 +19,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 import os
 
-
-
-INIT_LR=  1e-4
-EPOCHS =20
+INIT_LR = 1e-4
+EPOCHS = 20
 BS = 32
 
-DIRECTORY ="D:\AI projects\Face mask detector (Ai project)\dataset"
-CATEGORIES= ["with_mask", "without_mask"]
-print("[INFO] loading images")
+DIRECTORY = "D:\AI projects\Face-Mask-Detection\dataset"
+CATEGORIES = ["with_mask", "without_mask"]
+
+print("[INFO] loading images...")
 
 data = []
 labels = []
@@ -43,8 +42,7 @@ for category in CATEGORIES:
     	data.append(image)
     	labels.append(category)
 
-
-        lb = LabelBinarizer()
+lb = LabelBinarizer()
 labels = lb.fit_transform(labels)
 labels = to_categorical(labels)
 
@@ -54,7 +52,7 @@ labels = np.array(labels)
 (trainX, testX, trainY, testY) = train_test_split(data, labels,
 	test_size=0.20, stratify=labels, random_state=42)
 
- aug = ImageDataGenerator(
+aug = ImageDataGenerator(
 	rotation_range=20,
 	zoom_range=0.15,
 	width_shift_range=0.2,
@@ -78,12 +76,12 @@ model = Model(inputs=baseModel.input, outputs=headModel)
 for layer in baseModel.layers:
 	layer.trainable = False
 
-	print("[INFO] compiling model...")
+print("[INFO] compiling model...")
 opt = Adam(lr=INIT_LR, decay=INIT_LR / EPOCHS)
 model.compile(loss="binary_crossentropy", optimizer=opt,
 	metrics=["accuracy"])
 
-	print("[INFO] training head...")
+print("[INFO] training head...")
 H = model.fit(
 	aug.flow(trainX, trainY, batch_size=BS),
 	steps_per_epoch=len(trainX) // BS,
@@ -91,16 +89,16 @@ H = model.fit(
 	validation_steps=len(testX) // BS,
 	epochs=EPOCHS)
 
-	print("[INFO] evaluating network...")
-	predIdxs = model.predict(testX, batch_size=BS)
+print("[INFO] evaluating network...")
+predIdxs = model.predict(testX, batch_size=BS)
 
-	predIdxs = np.argmax(predIdxs, axis=1)
+predIdxs = np.argmax(predIdxs, axis=1)
 
-	print(classification_report(testY.argmax(axis=1), predIdxs,
+print(classification_report(testY.argmax(axis=1), predIdxs,
 	target_names=lb.classes_))
 
-	print("[INFO] saving mask detector model...")
-	model.save("mask_detector.model", save_format="h5")
+print("[INFO] saving mask detector model...")
+model.save("mask_detector.model", save_format="h5")
 
 N = EPOCHS
 plt.style.use("ggplot")
